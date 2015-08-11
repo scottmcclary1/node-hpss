@@ -35,11 +35,43 @@ describe("HSI Tests", function() {
         });
     });
 
-    describe("#transfer", function() {
+    describe("#put", function() {
+        it("put-missing", function(done) {
+            hsi.put('/usr/local/tmp/_missing', 'test', function(err) {
+                expect(err.code).to.equal('ENOENT');  //spawn chould generate error event
+                done();
+            });
+        });
+        it("put-remotemissing", function(done) {
+            hsi.put('/usr/local/tmp/node-v0.10.29-linux-x64.tar.gz', '_missing_/filename', function(err, lines) {
+                expect(err.code).to.be.equal(72); 
+                done();
+            });
+        });
+        it("put-small", function(done) {
+            hsi.put('/usr/local/tmp/node-v0.10.29-linux-x64.tar.gz', 'test/node-v0.10.29-linux-x64.tar.gz', function(err, lines) {
+                expect(err).to.be.a('null');
+                console.dir(lines);
+                done();
+            });
+        });
+        it("put-medium", function(done) {
+            this.timeout(30*1000); //30 seconds should be enough
+            hsi.put('/usr/local/tmp/git.tar.gz', 'test/git.tar.gz', function(err, lines) {
+                expect(err).to.be.a('null');
+                console.dir(lines);
+                done();
+            }, function(progress) {
+                console.dir(progress);
+            });
+        });
+    });
+
+    describe("#get", function() {
         it("get-wronglocal", function(done) {
             hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/__noexists__', function(err) {
                 expect(err.code).to.equal('ENOENT');  //spawn chould generate error event
-                done();a('null');
+                done();
             });
         });
         it("get-localnonaccessible", function(done) {
@@ -54,34 +86,39 @@ describe("HSI Tests", function() {
                 done();
             });
         });
+
         it("get-small", function(done) {
             //hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/tmp', function(err) {
-            hsi.get('node-v0.10.29-linux-x64.tar.gz', '/usr/local/tmp', function(err) {
+            hsi.get('test/node-v0.10.29-linux-x64.tar.gz', '/usr/local/tmp', function(err, lines) {
                 expect(err).to.be.a('null');
+                console.dir(lines);
                 done();
             }, function(progress) {
                 console.dir(progress);
             });
         });
+
         it("get-medium", function(done) {
             this.timeout(30*1000); //30 seconds should be enough
-            //hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/tmp', function(err) {
-            hsi.get('test/git.tar.gz', '/usr/local/tmp', function(err) {
+            hsi.get('test/git.tar.gz', '/usr/local/tmp', function(err, lines) {
                 expect(err).to.be.a('null');
+                console.dir(lines);
                 done();
             }, function(progress) {
                 console.dir(progress);
             });
         });
+/*
         it("get-bigish", function(done) {
             this.timeout(600*1000); //5 minutes should be enough
-            hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/tmp', function(err) {
+            hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/tmp', function(err, lines) {
                 expect(err).to.be.a('null');
                 done();
             }, function(progress) {
                 console.dir(progress);
             });
         });
+*/
     });
 
     describe("#lastly", function() {

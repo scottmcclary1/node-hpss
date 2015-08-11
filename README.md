@@ -85,6 +85,74 @@ files will contain list of files / directories. I might change the mode / owner 
     entry: 'ubuntu-14.04.2-desktop-amd64.iso',
     _raw: '-rw-------    1 hayashis  hpss          3       740536 DISK    1044381696 May 20 09:06 isos/ubuntu-14.04.2-desktop-amd64.iso' } ]
 ```
+For error handling, please test/test.js
+
+### hsi.put
+
+1st argument for hsi.put is the local file path, and 2nd is the remote (hpss) path. It needs to contain the file path (some.tar.gz) on remote path
+Otherwise hsi will somehow not send any file..
+
+```
+var hsi = require("hpss").hsi;
+
+hsi.put('/usr/local/some.tar.gz', '/hpss/path/some.tar.gz', function(err) {
+    if(err) throw err;
+}, function(progress) {
+    console.dir(progress);
+});
+```
+
+You can receive progress report via the 2nd callback function you provide (optional). I've throttled down the frequency of hsi.put progress message to 1 in every 3 seconds (1 second for hsi.get) since hsi.put progress reports requies hsi.ls call on the remote file.
+
+```
+{ progress: 0.4205854166191833,
+  total_size: 508599432,
+  transferred_size: 213909504,
+  elapsed_time: 5251 }
+{ progress: 0.8494176061132526,
+  total_size: 508599432,
+  transferred_size: 432013312,
+  elapsed_time: 10274 }
+{ progress: 1,
+  total_size: 508599432,
+  transferred_size: 508599432,
+  elapsed_time: 12279 }
+```
+
+For error handling, please test/test.js
+
+### hsi.get
+
+1st argument for hsi.get is the remote hpss path, and 2nd argument is the local directory name (not path - unlike hsi.put) 
+
+```
+var hsi = require("hpss").hsi;
+
+hsi.get('hpss/path/some.tar.gz', '/usr/local/tmp', function(err) {
+    if(err) throw err;
+}, function(progress) {
+    console.dir(progress);
+});
+```
+
+You can receive progress report via the 2nd callback function you provide (optional)
+
+```
+{ progress: 0.4205854166191833,
+  total_size: 508599432,
+  transferred_size: 213909504,
+  elapsed_time: 5251 }
+{ progress: 0.8494176061132526,
+  total_size: 508599432,
+  transferred_size: 432013312,
+  elapsed_time: 10274 }
+{ progress: 1,
+  total_size: 508599432,
+  transferred_size: 508599432,
+  elapsed_time: 12279 }
+```
+
+For error handling, please test/test.js
 
 ## References
 
