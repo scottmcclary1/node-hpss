@@ -1,10 +1,12 @@
 # node-hpss
-hpss / hsi interface for nodejs
+hpss hsi/htar interface for nodejs.
+
+This is pretty much a work in progress yet.
 
 ## Installation
 
 ```
-npm install node-hpss
+npm install hpss
 ```
 
 ## Sample Use

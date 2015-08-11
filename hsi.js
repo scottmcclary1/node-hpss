@@ -2,9 +2,10 @@
 
 var fs = require('fs');
 var spawn = require('child_process').spawn;
-var through = require('through2');
-var split = require('split');
 var EventEmitter = require("events").EventEmitter;
+
+var split = require('split');
+var through = require('through2');
 
 var firewall = 'on'; //or off (TODO - allow user to set this)
 

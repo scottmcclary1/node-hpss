@@ -1,6 +1,6 @@
 {
   "name": "hpss",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "hpss interface for nodejs",
   "main": "app.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "url": "git@github.com:soichih/node-hpss.git"
   },
   "keywords": [
-    "hpss",
+    "hsi",
+    "htar",
     "hpss"
   ],
   "author": "Soichi Hayashi <hayashis@iu.edu>",
