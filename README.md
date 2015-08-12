@@ -13,6 +13,8 @@ npm install hpss
 
 ### hsi.mkdir
 
+Create a directory in HPSS
+
 ```
 var hsi = require("hpss").hsi;
 
@@ -24,6 +26,8 @@ hsi.mkdir('some/path/in/hpss', function(err) {
 
 ### hsi.rmdir
 
+Remove an empty directory in HPSS
+
 ```
 var hsi = require("hpss").hsi;
 
@@ -33,7 +37,33 @@ hsi.rmdir('some/path/in/hpss', function(err) {
 
 ```
 
-hsi should return err.code: 64 if specify directory that you don't have access. Also returns 64 if you try to remove non-empty directory. If you specify non-existing directory, hsi will oddily return no error (it just skips it!)
+Trying to remove a non-empty directory (or non-accessible directory) will return err.code: 64. Removing non-existing directory is no-op and results in null err.
+
+### hsi.touch
+
+```
+var hsi = require("hpss").hsi;
+
+hsi.touch('some/path/in/hpss/filename', function(err) {
+    if(err) throw err;
+});
+
+```
+
+### hsi.rm
+
+Remove a file from HPSS
+
+```
+var hsi = require("hpss").hsi;
+
+hsi.rm('some/path/in/hpss/filename', function(err) {
+    if(err) throw err;
+});
+
+```
+
+Trying to remove non-existing will result in err.code:72
 
 ### hsi.ls
 
