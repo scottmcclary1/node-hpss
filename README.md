@@ -1,7 +1,7 @@
 # node-hpss
 hpss hsi/htar interface for nodejs.
 
-This is pretty much a work in progress yet.
+Currently, only hsi command is supported (htar is still TODO). 
 
 ## Installation
 
@@ -213,3 +213,7 @@ See test/test.js for error handling
 ## References
 
 For a bit more detail on hsi/htar commands see https://www.olcf.ornl.gov/kb_articles/transferring-data-with-hsi-and-htar/
+
+## Notes
+
+htar doesn't seems to allow access through firewall-ed environment. Unlike hsi where I can specify "firewall -on" on the command line, I can't find an equivalent flag for htar.
