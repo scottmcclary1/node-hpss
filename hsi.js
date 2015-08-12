@@ -150,6 +150,22 @@ exports.version = function(cb) {
     });
 }
 
+exports.rmdir = function(hpsspath, cb) {
+    simplecmd('rmdir '+hpsspath, {}, function(err, lines) {
+        console.dir(err);
+        console.dir(lines);
+        cb(err, lines);
+    });
+}
+
+exports.mkdir = function(hpsspath, cb) {
+    simplecmd('mkdir '+hpsspath, {}, function(err, lines) {
+        console.dir(err);
+        console.dir(lines);
+        cb(err, lines);
+    });
+}
+
 exports.get = function(hpsspath, localdest, cb, progress_cb) {
     exports.ls(hpsspath, function(err, files) {
         if(err) {

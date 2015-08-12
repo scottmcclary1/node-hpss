@@ -11,6 +11,30 @@ npm install hpss
 
 ## Sample Use
 
+### hsi.mkdir
+
+```
+var hsi = require("hpss").hsi;
+
+hsi.mkdir('some/path/in/hpss', function(err) {
+    if(err) throw err;
+});
+
+```
+
+### hsi.rmdir
+
+```
+var hsi = require("hpss").hsi;
+
+hsi.rmdir('some/path/in/hpss', function(err) {
+    if(err) throw err;
+});
+
+```
+
+hsi should return err.code: 64 if specify directory that you don't have access. Also returns 64 if you try to remove non-empty directory. If you specify non-existing directory, hsi will oddily return no error (it just skips it!)
+
 ### hsi.ls
 
 ```
@@ -87,7 +111,7 @@ files will contain list of files / directories. I might change the mode / owner 
     entry: 'ubuntu-14.04.2-desktop-amd64.iso',
     _raw: '-rw-------    1 hayashis  hpss          3       740536 DISK    1044381696 May 20 09:06 isos/ubuntu-14.04.2-desktop-amd64.iso' } ]
 ```
-For error handling, please test/test.js
+See test/test.js for error handling
 
 ### hsi.put
 
@@ -121,7 +145,7 @@ You can receive progress report via the 2nd callback function you provide (optio
   elapsed_time: 12279 }
 ```
 
-For error handling, please test/test.js
+See test/test.js for error handling
 
 ### hsi.get
 
@@ -154,7 +178,7 @@ You can receive progress report via the 2nd callback function you provide (optio
   elapsed_time: 12279 }
 ```
 
-For error handling, please test/test.js
+See test/test.js for error handling
 
 ## References
 
