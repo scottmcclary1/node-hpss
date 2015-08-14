@@ -26,6 +26,16 @@ describe("HSI Tests", function() {
                 done();
             });
         });
+        /*
+        it("ls(valid)", function(done) {
+            hsi.ls('intopo/historic/geopdf/250k/in_evansville_156913_1957_250000_geo.zip', function(err, files){
+                expect(err).to.be.a('null');
+                expect(files).to.have.length(3);
+                console.dir(files);
+                done();
+            });
+        });
+        */
         it("ls(valid)", function(done) {
             hsi.ls('isos', function(err, files){
                 expect(err).to.be.a('null');

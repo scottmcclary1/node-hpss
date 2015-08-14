@@ -29,8 +29,6 @@ function simplecmd(cmd, opts, cb, linecb) {
         next();
     }));
     p.on('close', function(code, signal) {
-        //console.log("closed with :"+code);
-        //console.dir(header);
         if(code == 0) cb(null, lines);
         else cb({code: code, signal: signal}, lines);
     });
@@ -105,7 +103,9 @@ function parse_lsout(out) {
 }
 
 exports.ls = function(path, cb) {
+    //console.log("ls called "+path);
     simplecmd('ls -UN '+path, {}, function(err, lines) {
+        //console.dir(err);
         //console.dir(lines);
         if(err) {
             //hsi/ls return codes (??)
@@ -166,8 +166,8 @@ exports.rm = function(hpsspath, cb) {
 
 exports.touch = function(hpsspath, cb) {
     simplecmd('touch '+hpsspath, {}, function(err, lines) {
-        console.dir(err);
-        console.dir(lines);
+        //console.dir(err);
+        //console.dir(lines);
         cb(err, lines);
     });
 }
@@ -181,11 +181,8 @@ exports.mkdir = function(hpsspath, cb) {
 exports.get = function(hpsspath, localdest, cb, progress_cb) {
     exports.ls(hpsspath, function(err, files) {
         if(err) {
-            //can't ls - then can't get
-            //console.dir(files);
-            return cb(err)
+            return cb(err, files)
         } 
-        //console.dir(files);
         var file = files[0];
         var start = Date.now();
         var total_size = parseInt(file.size);
@@ -194,14 +191,11 @@ exports.get = function(hpsspath, localdest, cb, progress_cb) {
         function progress() {
             try {
                 var stats = fs.statSync(localdest+"/"+file.entry);
-                var now = Date.now();
                 var per = stats.size / total_size;
-                //console.log("progress: "+file.size+" "+total_size);
-                progress_cb({/*get: hpsspath,*/ progress: per, total_size: total_size, transferred_size: stats.size, elapsed_time: now - start});
+                progress_cb({/*get: hpsspath,*/ progress: per, total_size: total_size, transferred_size: stats.size, elapsed_time: Date.now() - start});
                 if(per == 1) progress_complete = true;
             } catch (e) {
-                //probably localdest/file.entry doesn't exist yet.. ignore
-                progress_cb({progress: 0, total_size: total_size, transferred_size: 0, elapsed_time: now - start});
+                progress_cb({progress: 0, total_size: total_size, transferred_size: 0, elapsed_time: Date.now() - start});
             }
         }
         var p = null;
@@ -234,12 +228,11 @@ exports.put = function(localpath, hpsspath, cb, progress_cb) {
         exports.ls(hpsspath, function(err, files) {
             if(err) {
                 //file may not exist yet on remote... 
-                progress_cb({progress: 0, total_size: src.size, transferred_size: 0, elapsed_time: now - start});
+                progress_cb({progress: 0, total_size: src.size, transferred_size: 0, elapsed_time: Date.now() - start});
             } else {
-                var now = Date.now();
                 var file = files[0];
                 var per = file.size / src.size;
-                progress_cb({/*put: localpath,*/ progress: per, total_size: src.size, transferred_size: file.size, elapsed_time: now - start});
+                progress_cb({/*put: localpath,*/ progress: per, total_size: src.size, transferred_size: file.size, elapsed_time: Date.now() - start});
                 if(per == 1) progress_complete = true;
             }
         });
@@ -252,13 +245,8 @@ exports.put = function(localpath, hpsspath, cb, progress_cb) {
         simplecmd('put '+localpath+' : '+hpsspath, {}, function(err, lines) {
             clearInterval(p);
             if(err) {
-                //console.dir(err);
                 cb(err, lines);
             } else {
-                //lines will contain something like (TODO - should I parse?)
-                //[ 'put  \'/usr/local/tmp/node-v0.10.29-linux-x64.tar.gz\' : \'/hpss/h/a/hayashis/test/node-v0.10.29-linux-x64.tar.gz\' ( 5362980 bytes, 25167.5 KBS (cos=2))',
-                //  '' ]
-                
                 //send 1 more progress report before calling it done
                 if(progress_cb && !progress_complete) progress_cb({progress: 1, total_size: src.size, transferred_size: src.size, elapsed_time: Date.now() - start});
                 cb(null, lines);
@@ -267,42 +255,6 @@ exports.put = function(localpath, hpsspath, cb, progress_cb) {
     } catch (e) {
         cb(e); //code.ENOENT?
     }
-
-    /*
-    exports.ls(hpsspath, function(err, files) {
-        if(err) {
-            //can't ls - then can't get
-            //console.dir(files);
-            return cb(err)
-        } 
-        //console.dir(files);
-        var file = files[0];
-        var start = Date.now();
-        var total_size = parseInt(file.size);
-
-        function progress() {
-            var stats = fs.statSync(localdest+"/"+file.entry);
-            var now = Date.now();
-            //console.log("progress: "+file.size+" "+total_size);
-            progress_cb({progress: stats.size / total_size, total_size: total_size, transferred_size: stats.size, elapsed_time: now - start});
-        }
-        var p = setInterval(progress, 1000);
-
-        simplecmd('get '+hpsspath, {cwd: localdest}, function(err, lines) {
-            clearInterval(p);
-            if(err) {
-                //console.dir(err);
-                cb(err, lines);
-            } else {
-                //success! - lines will contain information like (TODO should I parse?)
-                ///hpss/h/a/hayashis/node-v0.10.29-linux-x64.tar.gz: (md5) OK
-                //get  'node-v0.10.29-linux-x64.tar.gz' : '/hpss/h/a/hayashis/node-v0.10.29-linux-x64.tar.gz' (2014/07/16 14:56:29 5362980 bytes, 25094.1 KBS )
-                progress(); //send last progress with progress: 1.0
-                cb(null, lines);
-            }
-        });
-    });
-    */
 }
 
 
