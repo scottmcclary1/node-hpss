@@ -1,6 +1,6 @@
 {
   "name": "hpss",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "hpss interface for nodejs",
   "main": "app.js",
   "scripts": {
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "split": "~1.0.0",
-    "through2": "~2.0.0"
+    "through2": "~2.0.0",
+    "underscore": "~1.8.3"
   }
 }

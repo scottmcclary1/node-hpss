@@ -1,19 +1,41 @@
 "use strict";
 
+//os
 var fs = require('fs');
 var spawn = require('child_process').spawn;
 var EventEmitter = require("events").EventEmitter;
 
+//contrib
 var split = require('split');
 var through = require('through2');
+//var _ = require('underscore');
 
-var firewall = 'on'; //or off (TODO - allow user to set this)
+//mine
+var hpss = require('./app').hpss;
 
 function simplecmd(cmd, opts, cb, linecb) {
-    var p = spawn('hsi', ['firewall -'+firewall+'; '+cmd], opts);
+
+    //extend os env with user specified env
+    //if(hpss.env) opts.env = _.extend(process.env, hpss.env);
+    if(hpss.env) {
+        /*
+        opts.env = _.clone(process.env);
+        _.extend(opts.env, hpss.env);
+        console.dir(opts.env);
+        */
+        opts.env = hpss.env;
+    }
+    //console.dir(opts.env);
+
+    if(hpss.behind_firewall) {
+        cmd = 'firewall -on; '+cmd;
+    } else {
+        cmd = 'firewall -off; '+cmd;
+    }
+
     var lines = [];
     var header = [];
-  
+    var p = spawn('hsi', [cmd], opts);
     //setup a line parser
     p.stderr.pipe(split()).pipe(through(function(buf, _, next){
         var line = buf.toString();
@@ -29,12 +51,18 @@ function simplecmd(cmd, opts, cb, linecb) {
         next();
     }));
     p.on('close', function(code, signal) {
+        //console.log("hsi finished");
+        //console.log(code);
+        //console.log(signal);
         if(code == 0) cb(null, lines);
         else cb({code: code, signal: signal}, lines);
     });
     p.on('error', function(err) {
         //like cwd set to a wrong path or such..
-        cb(err);
+        console.log("hsi command failed:"+cmd); 
+        console.dir(err);
+        console.dir(opts);
+        //'close' will still fire so no need to cb(err);
     });
 }
 
@@ -103,10 +131,7 @@ function parse_lsout(out) {
 }
 
 exports.ls = function(path, cb) {
-    //console.log("ls called "+path);
     simplecmd('ls -UN '+path, {}, function(err, lines) {
-        //console.dir(err);
-        //console.dir(lines);
         if(err) {
             //hsi/ls return codes (??)
             //64: missing?
@@ -158,8 +183,8 @@ exports.rmdir = function(hpsspath, cb) {
 
 exports.rm = function(hpsspath, cb) {
     simplecmd('rm '+hpsspath, {}, function(err, lines) {
-        console.dir(err);
-        console.dir(lines);
+        //console.dir(err);
+        //console.dir(lines);
         cb(err, lines);
     });
 }
