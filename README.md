@@ -11,27 +11,29 @@ npm install hpss
 
 ## Sample Use
 
-### hsi.mkdir
+### mkdir
 
 Create a directory in HPSS
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.mkdir('some/path/in/hpss', function(err) {
+var fs = require("fs");
+var hpss = require("hpss");
+var context = new hpss.context({
+    username: "hayashis",
+    keytab: fs.readFileSync("/home/hayashis/.ssh/soichi-hsi.keytab")
+});
+context.mkdir('some/path/in/hpss', function(err) {
     if(err) throw err;
 });
 
 ```
 
-### hsi.rmdir
+### rmdir
 
 Remove an empty directory in HPSS
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.rmdir('some/path/in/hpss', function(err) {
+context.rmdir('some/path/in/hpss', function(err) {
     if(err) throw err;
 });
 
@@ -39,25 +41,21 @@ hsi.rmdir('some/path/in/hpss', function(err) {
 
 Trying to remove a non-empty directory (or non-accessible directory) will return err.code: 64. Removing non-existing directory is no-op and results in null err.
 
-### hsi.touch
+### touch
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.touch('some/path/in/hpss/filename', function(err) {
+context.touch('some/path/in/hpss/filename', function(err) {
     if(err) throw err;
 });
 
 ```
 
-### hsi.rm
+### rm
 
 Remove a file from HPSS
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.rm('some/path/in/hpss/filename', function(err) {
+context.rm('some/path/in/hpss/filename', function(err) {
     if(err) throw err;
 });
 
@@ -65,12 +63,10 @@ hsi.rm('some/path/in/hpss/filename', function(err) {
 
 Trying to remove non-existing will result in err.code:72
 
-### hsi.ls
+### ls
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.ls('some/path/in/hpss', function(err, files) {
+context.ls('some/path/in/hpss', function(err, files) {
     console.dir(files);
 });
 
@@ -143,15 +139,13 @@ files will contain list of files / directories. I might change the mode / owner 
 ```
 See test/test.js for error handling
 
-### hsi.put
+### put
 
 1st argument for hsi.put is the local file path, and 2nd is the remote (hpss) path. It needs to contain the file path (some.tar.gz) on remote path
 Otherwise hsi will somehow not send any file..
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.put('/usr/local/some.tar.gz', '/hpss/path/some.tar.gz', function(err) {
+context.put('/usr/local/some.tar.gz', '/hpss/path/some.tar.gz', function(err) {
     if(err) throw err;
 }, function(progress) {
     console.dir(progress);
@@ -177,14 +171,12 @@ You can receive progress report via the 2nd callback function you provide (optio
 
 See test/test.js for error handling
 
-### hsi.get
+### get
 
 1st argument for hsi.get is the remote hpss path, and 2nd argument is the local directory name (not path - unlike hsi.put) 
 
 ```
-var hsi = require("hpss").hsi;
-
-hsi.get('hpss/path/some.tar.gz', '/usr/local/tmp', function(err) {
+context.get('hpss/path/some.tar.gz', '/usr/local/tmp', function(err) {
     if(err) throw err;
 }, function(progress) {
     console.dir(progress);
@@ -214,6 +206,6 @@ See test/test.js for error handling
 
 For a bit more detail on hsi/htar commands see https://www.olcf.ornl.gov/kb_articles/transferring-data-with-hsi-and-htar/
 
-## Notes
+## TODO
 
-htar doesn't seems to allow access through firewall-ed environment. Unlike hsi where I can specify "firewall -on" on the command line, I can't find an equivalent flag for htar.
+I haven't implemented commands for htar yet.  htar doesn't seems to allow access through firewall-ed environment. Unlike hsi where I can specify "firewall -on" on the command line, I can't find an equivalent flag for htar. My dev/prod environment are behind firewall currently, so I can't develop (and it will be useless in prod) until I can find a way to go around this problem
