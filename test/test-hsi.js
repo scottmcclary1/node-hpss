@@ -3,6 +3,7 @@ var hpss = require("../app.js");
 var hsi = hpss.hsi;
 
 describe("HSI Tests", function() {
+
     describe("#basic", function() {
         it("version", function(done) {
             hsi.version(function(err, out){
@@ -26,16 +27,6 @@ describe("HSI Tests", function() {
                 done();
             });
         });
-        /*
-        it("ls(valid)", function(done) {
-            hsi.ls('intopo/historic/geopdf/250k/in_evansville_156913_1957_250000_geo.zip', function(err, files){
-                expect(err).to.be.a('null');
-                expect(files).to.have.length(3);
-                console.dir(files);
-                done();
-            });
-        });
-        */
         it("ls(valid)", function(done) {
             hsi.ls('isos', function(err, files){
                 expect(err).to.be.a('null');
@@ -81,14 +72,6 @@ describe("HSI Tests", function() {
                 done();
             });
         });
-        /*
-        it("rm non-existing file should return HPSS_EACCESS:72", function(done) {
-            hsi.rm('', function(err, out) {
-                expect(err.code).to.equal(72);
-                done();
-            });
-        });
-        */
         it("rm directory is no-op", function(done) {
             hsi.rm('/hpss/h/a/hayashis', function(err, out) {
                 expect(err).to.be.a('null');
@@ -225,27 +208,8 @@ describe("HSI Tests", function() {
                 console.dir(progress);
             });
         });
-/*
-        it("get-bigish", function(done) {
-            this.timeout(600*1000); //5 minutes should be enough
-            hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/tmp', function(err, lines) {
-                expect(err).to.be.a('null');
-                done();
-            }, function(progress) {
-                console.dir(progress);
-            });
-        });
-*/
     });
 
     describe("#lastly", function() {
-        /*
-        it("quit", function(done) {
-            hsi.quit(function(code, signal) {
-                console.log("quit with code:"+code);
-                done();
-            });
-        });
-        */
     });
 });

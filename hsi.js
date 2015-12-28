@@ -15,17 +15,28 @@ var hpss = require('./app').hpss;
 
 function simplecmd(cmd, opts, cb, linecb) {
 
-    //extend os env with user specified env
-    //if(hpss.env) opts.env = _.extend(process.env, hpss.env);
+    /*
+    //merge hpss.env (opts takes precedence)
+    if(opts.env == undefined) opts.env = process.env;
     if(hpss.env) {
-        /*
-        opts.env = _.clone(process.env);
-        _.extend(opts.env, hpss.env);
-        console.dir(opts.env);
-        */
-        opts.env = hpss.env;
+        for(var k in hpss.env) {
+            if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
+        }
     }
-    //console.dir(opts.env);
+    */
+    
+    //start with empty env (if not set by user)
+    if(opts.env == undefined) opts.env = {};
+    //copy all htpss.env to opts.env (if not set yet)
+    if(hpss.env) {
+        for(var k in hpss.env) {
+            if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
+        }
+    }
+    //copy all process.env to opts.env (if not set yet)
+    for(var k in process.env) {
+        if(opts.env[k] === undefined) opts.env[k] = process.env[k];
+    }
 
     if(hpss.behind_firewall) {
         cmd = 'firewall -on; '+cmd;
@@ -281,6 +292,4 @@ exports.put = function(localpath, hpsspath, cb, progress_cb) {
         cb(e); //code.ENOENT?
     }
 }
-
-
 
