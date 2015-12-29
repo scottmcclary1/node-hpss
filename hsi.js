@@ -8,23 +8,11 @@ var EventEmitter = require("events").EventEmitter;
 //contrib
 var split = require('split');
 var through = require('through2');
-//var _ = require('underscore');
 
 //mine
 var hpss = require('./app').hpss;
 
 function simplecmd(cmd, opts, cb, linecb) {
-
-    /*
-    //merge hpss.env (opts takes precedence)
-    if(opts.env == undefined) opts.env = process.env;
-    if(hpss.env) {
-        for(var k in hpss.env) {
-            if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
-        }
-    }
-    */
-    
     //start with empty env (if not set by user)
     if(opts.env == undefined) opts.env = {};
     //copy all htpss.env to opts.env (if not set yet)
@@ -117,7 +105,7 @@ function parse_lsout(out) {
             cos: tokens[8],
             size: parseInt(tokens[10]),
             date: new Date(tokens[12]+" "+tokens[14]+" "+tokens[16]),
-            entry: parse_entry(tokens.splice(18).join(" ")),
+            entry: parse_entry(tokens.splice(18).join("")),
             _raw: out,
             //_tokens: tokens 
         }
@@ -134,7 +122,7 @@ function parse_lsout(out) {
             where: tokens[12],
             size: parseInt(tokens[14]),
             date: new Date(tokens[16]+" "+tokens[18]+" "+tokens[20]),
-            entry: parse_entry(tokens.splice(22).join(" ")),
+            entry: parse_entry(tokens.splice(22).join("")),
             _raw: out,
             //_tokens: tokens 
         }
@@ -142,7 +130,7 @@ function parse_lsout(out) {
 }
 
 exports.ls = function(path, cb) {
-    simplecmd('ls -UN '+path, {}, function(err, lines) {
+    simplecmd('ls -UN \"'+path+'\"', {}, function(err, lines) {
         if(err) {
             //hsi/ls return codes (??)
             //64: missing?
@@ -187,13 +175,13 @@ exports.version = function(cb) {
 }
 
 exports.rmdir = function(hpsspath, cb) {
-    simplecmd('rmdir '+hpsspath, {}, function(err, lines) {
+    simplecmd('rmdir \"'+hpsspath+'\"', {}, function(err, lines) {
         cb(err, lines);
     });
 }
 
 exports.rm = function(hpsspath, cb) {
-    simplecmd('rm '+hpsspath, {}, function(err, lines) {
+    simplecmd('rm \"'+hpsspath+'\"', {}, function(err, lines) {
         //console.dir(err);
         //console.dir(lines);
         cb(err, lines);
@@ -201,7 +189,7 @@ exports.rm = function(hpsspath, cb) {
 }
 
 exports.touch = function(hpsspath, cb) {
-    simplecmd('touch '+hpsspath, {}, function(err, lines) {
+    simplecmd('touch \"'+hpsspath+'\"', {}, function(err, lines) {
         //console.dir(err);
         //console.dir(lines);
         cb(err, lines);
@@ -209,7 +197,7 @@ exports.touch = function(hpsspath, cb) {
 }
 
 exports.mkdir = function(hpsspath, cb) {
-    simplecmd('mkdir '+hpsspath, {}, function(err, lines) {
+    simplecmd('mkdir \"'+hpsspath+'\"', {}, function(err, lines) {
         cb(err, lines);
     });
 }
@@ -238,7 +226,7 @@ exports.get = function(hpsspath, localdest, cb, progress_cb) {
         if(progress_cb) p = setInterval(progress, 1000);
 
         //if localdest is missing, spawn will generate error
-        simplecmd('get '+hpsspath, {cwd: localdest}, function(err, lines) {
+        simplecmd('get \"'+hpsspath+'\"', {cwd: localdest}, function(err, lines) {
             clearInterval(p);
             if(err) {
                 //console.dir(err);
@@ -278,7 +266,7 @@ exports.put = function(localpath, hpsspath, cb, progress_cb) {
         var src = fs.statSync(localpath); //throws if localsrc doesn't exist
         var p = null;
         if(progress_cb) p = setInterval(progress, 3000); //calling hsi ls every 3 seconds should be enough?
-        simplecmd('put '+localpath+' : '+hpsspath, {}, function(err, lines) {
+        simplecmd('put \"'+localpath+'\" : \"'+hpsspath+'\"', {}, function(err, lines) {
             clearInterval(p);
             if(err) {
                 cb(err, lines);
