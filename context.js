@@ -94,10 +94,9 @@ context.prototype.put = function(lcoalpath, hpsspath, cb, progress_cb) {
     }, progress_cb);
 }
 
-/*
 context.prototype.clean = function() {
-    this.keytab.removeCallback();
+    if(this.keytab) this.keytab.removeCallback();
 }
-*/
+
 
 module.exports = context;
