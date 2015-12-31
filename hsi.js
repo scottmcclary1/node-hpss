@@ -13,14 +13,15 @@ var through = require('through2');
 var hpss = require('./app').hpss;
 
 function simplecmd(cmd, opts, cb, linecb) {
+    
     //start with empty env (if not set by user)
     if(opts.env == undefined) opts.env = {};
-    //copy all htpss.env to opts.env (if not set yet)
-    if(hpss.env) {
-        for(var k in hpss.env) {
-            if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
-        }
+    
+    //copy all hpss.env to opts.env (if not set yet)
+    if(hpss.env) for(var k in hpss.env) {
+        if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
     }
+    
     //copy all process.env to opts.env (if not set yet)
     for(var k in process.env) {
         if(opts.env[k] === undefined) opts.env[k] = process.env[k];
@@ -54,7 +55,7 @@ function simplecmd(cmd, opts, cb, linecb) {
         //console.log(code);
         //console.log(signal);
         if(code == 0) cb(null, lines);
-        else cb({code: code, signal: signal}, lines);
+        else cb({code: code, signal: signal, lines: lines}, lines);
     });
     p.on('error', function(err) {
         //like cwd set to a wrong path or such..

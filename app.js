@@ -1,5 +1,6 @@
 'use strict';
 
+//TODO I really don't like the way I set the global.. I think I should expose these variable as conf object directly via export
 //hpss globals
 var hpss = {
     behind_firewall: false,
