@@ -34,16 +34,13 @@ function simplecmd(cmd, opts, cb, linecb) {
     }
 
     var lines = [];
-    var header = [];
+    var inheader = true;
     var p = spawn('hsi', [cmd], opts);
     //setup a line parser
     p.stderr.pipe(split()).pipe(through(function(buf, _, next){
         var line = buf.toString();
-        if(header.length < 2) {
-            //what should I do with header info? it looks like
-            //Username: hayashis  UID: 740536  Acct: 740536(740536) Copies: 1 Firewall: off [hsi.5.0.1.p1 Wed Dec 31 14:56:17 EST 2014]
-            //A: firewall mode set ON, I/O mode set to extended (parallel=off), autoscheduling currently set to OFF
-            header.push(line);
+        if(inheader) {
+            if(line.indexOf("A: firewall mode set") === 0) inheader = false;
         } else {
             lines.push(line);
             if(linecb) linecb(line);
