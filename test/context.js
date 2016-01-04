@@ -17,7 +17,7 @@ describe("#context", function() {
         });
         h.ls('isos', function(err, files){
             expect(err).to.be.a('null');
-            expect(files).to.have.length(3);
+            expect(files).to.have.length(5);
             console.dir(files);
             done();
         });

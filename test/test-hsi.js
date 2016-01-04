@@ -30,7 +30,7 @@ describe("HSI Tests", function() {
         it("ls(valid)", function(done) {
             hsi.ls('isos', function(err, files){
                 expect(err).to.be.a('null');
-                expect(files).to.have.length(3);
+                expect(files).to.have.length(5);
                 console.dir(files);
                 done();
             });
@@ -170,6 +170,7 @@ describe("HSI Tests", function() {
     describe("#get", function() {
         it("get-wronglocal", function(done) {
             hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/__noexists__', function(err) {
+                console.dir(err);
                 expect(err.code).to.equal('ENOENT');  //spawn chould generate error event
                 done();
             });

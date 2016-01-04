@@ -37,6 +37,7 @@ function simplecmd(cmd, opts, cb, linecb) {
     var skipped = 0;
     var reached_limit = false;
     var p = spawn('hsi', [cmd], opts);
+    var err = null;
     //setup a line parser
     p.stderr.pipe(split()).pipe(through(function(buf, _, next){
         var line = buf.toString();
@@ -69,16 +70,18 @@ function simplecmd(cmd, opts, cb, linecb) {
         //console.log(code);
         //console.log(signal);
         if(!reached_limit) {
-            if(code == 0) cb(null, lines);
-            else cb({code: code, signal: signal}, lines);
+            if(err) return cb(err, lines);
+            if(code != 0) return cb({code: code, signal: signal, err: err}, lines);
+            cb(null, lines);
         }
     });
-    p.on('error', function(err) {
+    p.on('error', function(_err) {
         //like cwd set to a wrong path or such..
         console.log("hsi command failed:"+cmd); 
         console.dir(err);
         console.dir(opts);
-        //'close' will still fire so no need to cb(err);
+        //'close' will still fire so defer for that event and pass err through it
+        err = _err;
     });
 }
 
@@ -182,15 +185,25 @@ exports.ls = function(path, opts, cb) {
     });
 }
 
-exports.help = function(cb) {
-    simplecmd('help', {}, function(err, lines) {
+exports.help = function(opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('help', opts, function(err, lines) {
         //var all_lines = lines.join('\n');
         cb(err, lines);
     });
 }
 
-exports.version = function(cb) {
-    simplecmd('version', {}, function(err, lines) {
+exports.version = function(opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('version', opts, function(err, lines) {
         if(err) {
             cb(err, lines);
         } else {
@@ -208,36 +221,62 @@ exports.version = function(cb) {
     });
 }
 
-exports.rmdir = function(hpsspath, cb) {
-    simplecmd('rmdir \"'+hpsspath+'\"', {}, function(err, lines) {
+exports.rmdir = function(hpsspath, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('rmdir \"'+hpsspath+'\"', opts, function(err, lines) {
         cb(err, lines);
     });
 }
 
-exports.rm = function(hpsspath, cb) {
-    simplecmd('rm \"'+hpsspath+'\"', {}, function(err, lines) {
+exports.rm = function(hpsspath, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('rm \"'+hpsspath+'\"', opts, function(err, lines) {
         //console.dir(err);
         //console.dir(lines);
         cb(err, lines);
     });
 }
 
-exports.touch = function(hpsspath, cb) {
-    simplecmd('touch \"'+hpsspath+'\"', {}, function(err, lines) {
+exports.touch = function(hpsspath, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('touch \"'+hpsspath+'\"', opts, function(err, lines) {
         //console.dir(err);
         //console.dir(lines);
         cb(err, lines);
     });
 }
 
-exports.mkdir = function(hpsspath, cb) {
-    simplecmd('mkdir \"'+hpsspath+'\"', {}, function(err, lines) {
+exports.mkdir = function(hpsspath, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('mkdir \"'+hpsspath+'\"', opts, function(err, lines) {
         cb(err, lines);
     });
 }
 
-exports.get = function(hpsspath, localdest, cb, progress_cb) {
-    exports.ls(hpsspath, function(err, files) {
+exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
+    //make opts optional 
+    if(typeof(opts) === 'function') {
+        progress_cb = cb;
+        cb = opts;
+        opts = {};
+    }
+    exports.ls(hpsspath, opts, function(err, files) {
         if(err) {
             return cb(err, files)
         } 
@@ -259,8 +298,9 @@ exports.get = function(hpsspath, localdest, cb, progress_cb) {
         var p = null;
         if(progress_cb) p = setInterval(progress, 1000);
 
-        //if localdest is missing, spawn will generate error
-        simplecmd('get \"'+hpsspath+'\"', {cwd: localdest}, function(err, lines) {
+        //if localdest is missing, spawn will generate error (TODO - just got get command?)
+        if(opts.cwd == undefined) opts.cwd = localdest;
+        simplecmd('get \"'+hpsspath+'\"', opts, function(err, lines) {
             clearInterval(p);
             if(err) {
                 //console.dir(err);
@@ -278,12 +318,19 @@ exports.get = function(hpsspath, localdest, cb, progress_cb) {
     });
 }
 
-exports.put = function(localpath, hpsspath, cb, progress_cb) {
+exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
+    //make opts optional 
+    if(typeof(opts) === 'function') {
+        progress_cb = cb;
+        cb = opts;
+        opts = {};
+    }
+
     var start = Date.now();
     var progress_complete = false;
 
     function progress() {
-        exports.ls(hpsspath, function(err, files) {
+        exports.ls(hpsspath, opts, function(err, files) {
             if(err) {
                 //file may not exist yet on remote... 
                 progress_cb({progress: 0, total_size: src.size, transferred_size: 0, elapsed_time: Date.now() - start});
@@ -300,7 +347,7 @@ exports.put = function(localpath, hpsspath, cb, progress_cb) {
         var src = fs.statSync(localpath); //throws if localsrc doesn't exist
         var p = null;
         if(progress_cb) p = setInterval(progress, 3000); //calling hsi ls every 3 seconds should be enough?
-        simplecmd('put \"'+localpath+'\" : \"'+hpsspath+'\"', {}, function(err, lines) {
+        simplecmd('put \"'+localpath+'\" : \"'+hpsspath+'\"', opts, function(err, lines) {
             clearInterval(p);
             if(err) {
                 cb(err, lines);

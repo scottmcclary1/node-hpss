@@ -13,8 +13,8 @@ var app = require('./app');
 //{username: hayashis, keytab: __binary__}
 function context(opt) {
     this.env = {};
-    if(opt.username) this.env.HPSS_PRINCIPAL= opt.username;
-    if(opt.keytab) {
+    if(opt && opt.username) this.env.HPSS_PRINCIPAL= opt.username;
+    if(opt && opt.keytab) {
         this.keytab = tmp.fileSync();
         var len = fs.writeSync(this.keytab.fd, opt.keytab, 0, opt.keytab.length); //need to set length or writeSync won't write anything..
         this.env.HPSS_AUTH_METHOD = "keytab";
