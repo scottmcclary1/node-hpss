@@ -13,15 +13,14 @@ var through = require('through2');
 var hpss = require('./app').hpss;
 
 function simplecmd(cmd, opts, cb, linecb) {
-    
     //start with empty env (if not set by user)
     if(opts.env == undefined) opts.env = {};
-    
-    //copy all hpss.env to opts.env (if not set yet)
-    if(hpss.env) for(var k in hpss.env) {
-        if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
+    //copy all htpss.env to opts.env (if not set yet)
+    if(hpss.env) {
+        for(var k in hpss.env) {
+            if(opts.env[k] === undefined) opts.env[k] = hpss.env[k];
+        }
     }
-    
     //copy all process.env to opts.env (if not set yet)
     for(var k in process.env) {
         if(opts.env[k] === undefined) opts.env[k] = process.env[k];
@@ -34,16 +33,34 @@ function simplecmd(cmd, opts, cb, linecb) {
     }
 
     var lines = [];
-    var inheader = true;
+    var header = [];
+    var skipped = 0;
+    var reached_limit = false;
     var p = spawn('hsi', [cmd], opts);
     //setup a line parser
     p.stderr.pipe(split()).pipe(through(function(buf, _, next){
         var line = buf.toString();
-        if(inheader) {
-            if(line.indexOf("A: firewall mode set") === 0) inheader = false;
+        if(header.length < 2) {
+            //what should I do with header info? it looks like
+            //Username: hayashis  UID: 740536  Acct: 740536(740536) Copies: 1 Firewall: off [hsi.5.0.1.p1 Wed Dec 31 14:56:17 EST 2014]
+            //A: firewall mode set ON, I/O mode set to extended (parallel=off), autoscheduling currently set to OFF
+            header.push(line);
         } else {
-            lines.push(line);
-            if(linecb) linecb(line);
+            //skip first few lines specified by opts.offset
+            if(opts.offset && opts.offset > skipped) {
+                skipped++;
+            } else {
+                //console.log(line);
+                lines.push(line);
+                if(linecb) linecb(line);
+
+                //terminate if it reaches the number of lines requested by limit
+                if(opts.limit && opts.limit == lines.length) {       
+                    p.kill('SIGTERM');
+                    reached_limit = true;
+                    cb(null, lines, reached_limit); 
+                }
+            }
         }
         next();
     }));
@@ -51,8 +68,10 @@ function simplecmd(cmd, opts, cb, linecb) {
         //console.log("hsi finished");
         //console.log(code);
         //console.log(signal);
-        if(code == 0) cb(null, lines);
-        else cb({code: code, signal: signal, lines: lines}, lines);
+        if(!reached_limit) {
+            if(code == 0) cb(null, lines);
+            else cb({code: code, signal: signal}, lines);
+        }
     });
     p.on('error', function(err) {
         //like cwd set to a wrong path or such..
@@ -96,7 +115,8 @@ function parse_lsout(out) {
         //drwx------    2 hayashis  hpss                  740536                512 Aug 10 20:55 subdir
         //directory
         return {
-            mode: parse_mode(tokens[0]),
+            directory: (tokens[0][0] == 'd'?true:false),
+            mode: tokens[0], //parse_mode(tokens[0]),
             links: parseInt(tokens[2]),
             owner: tokens[4],
             group: tokens[6],
@@ -111,7 +131,8 @@ function parse_lsout(out) {
         //-rw-------    1 hayashis  hpss          1       740536 DISK           572 Aug 10 20:55 package.json
         //file
         return {
-            mode: parse_mode(tokens[0]),
+            directory: (tokens[0][0] == 'd'?true:false),
+            mode: tokens[0], //parse_mode(tokens[0]),
             links: parseInt(tokens[2]),
             owner: tokens[4],
             group: tokens[6],
@@ -127,8 +148,20 @@ function parse_lsout(out) {
     }
 }
 
-exports.ls = function(path, cb) {
-    simplecmd('ls -UN \"'+path+'\"', {}, function(err, lines) {
+/*
+function isFunction(functionToCheck) {
+    var getType = {};
+    return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+}
+*/
+
+exports.ls = function(path, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
+    simplecmd('ls -UN \"'+path+'\"', opts, function(err, lines, reached_limit) {
         if(err) {
             //hsi/ls return codes (??)
             //64: missing?
@@ -137,10 +170,13 @@ exports.ls = function(path, cb) {
             var files = [];
             //lines = lines.splice(2);
             lines.forEach(function(line) {
-                if(line == '') return;
+                if(line == '') return; //last line?
                 //files.push(line.split(" ")); 
                 files.push(parse_lsout(line));
             });
+            if(reached_limit) {
+                files.push({next: opts.offset + opts.limit});
+            }
             cb(null, files);
         }
     });

@@ -13,18 +13,23 @@ var app = require('./app');
 //{username: hayashis, keytab: __binary__}
 function context(opt) {
     this.env = {};
-    if(opt && opt.username) this.env.HPSS_PRINCIPAL= opt.username;
-    if(opt && opt.keytab) {
+    if(opt.username) this.env.HPSS_PRINCIPAL= opt.username;
+    if(opt.keytab) {
         this.keytab = tmp.fileSync();
         var len = fs.writeSync(this.keytab.fd, opt.keytab, 0, opt.keytab.length); //need to set length or writeSync won't write anything..
         this.env.HPSS_AUTH_METHOD = "keytab";
         this.env.HPSS_KEYTAB_PATH = this.keytab.name;
     }
 }
-context.prototype.ls = function(path, cb) {
+context.prototype.ls = function(path, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
-    app.hsi.ls(path, function(err, out) {
+    app.hsi.ls(path, opts, function(err, out) {
         app.hpss.env = prev_env; //restore
         cb(err, out);
     });
