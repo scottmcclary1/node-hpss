@@ -90,7 +90,7 @@ context.prototype.get = function(hpsspath, localdest, cb, progress_cb) {
         cb(err, out);
     }, progress_cb);
 }
-context.prototype.put = function(lcoalpath, hpsspath, cb, progress_cb) {
+context.prototype.put = function(localpath, hpsspath, cb, progress_cb) {
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
     app.hsi.put(localpath, hpsspath, function(err, out) {

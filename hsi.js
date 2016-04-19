@@ -300,6 +300,7 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
 
         //if localdest is missing, spawn will generate error (TODO - just got get command?)
         if(opts.cwd == undefined) opts.cwd = localdest;
+        //TODO should I double-quote escape hpsspath?
         simplecmd('get \"'+hpsspath+'\"', opts, function(err, lines) {
             clearInterval(p);
             if(err) {
@@ -347,6 +348,7 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
         var src = fs.statSync(localpath); //throws if localsrc doesn't exist
         var p = null;
         if(progress_cb) p = setInterval(progress, 3000); //calling hsi ls every 3 seconds should be enough?
+        //TODO shouldn't I double-quote escape localpath/hpsspath?
         simplecmd('put \"'+localpath+'\" : \"'+hpsspath+'\"', opts, function(err, lines) {
             clearInterval(p);
             if(err) {
