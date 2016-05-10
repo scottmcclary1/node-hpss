@@ -71,7 +71,8 @@ function simplecmd(cmd, opts, cb, linecb) {
         //console.log(signal);
         if(!reached_limit) {
             if(err) return cb(err, lines);
-            if(code != 0) return cb({code: code, signal: signal, err: err}, lines);
+            //if(code != 0) return cb({code: code, signal: signal, err: err}, lines);
+            if(code != 0) return cb(cmd+" failed with code:"+code+"\n"+lines.join("\n"));
             cb(null, lines);
         }
     });
@@ -164,6 +165,7 @@ exports.ls = function(path, opts, cb) {
         cb = opts;
         opts = {};
     }
+    //TODO should I double-quote escape path?
     simplecmd('ls -UN \"'+path+'\"', opts, function(err, lines, reached_limit) {
         if(err) {
             //hsi/ls return codes (??)
@@ -227,6 +229,7 @@ exports.rmdir = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
+    //TODO should escape hpsspath..
     simplecmd('rmdir \"'+hpsspath+'\"', opts, function(err, lines) {
         cb(err, lines);
     });
@@ -238,6 +241,7 @@ exports.rm = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
+    //TODO should escape hpsspath..
     simplecmd('rm \"'+hpsspath+'\"', opts, function(err, lines) {
         //console.dir(err);
         //console.dir(lines);
@@ -251,6 +255,7 @@ exports.touch = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
+    //TODO should escape hpsspath..
     simplecmd('touch \"'+hpsspath+'\"', opts, function(err, lines) {
         //console.dir(err);
         //console.dir(lines);
@@ -264,6 +269,7 @@ exports.mkdir = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
+    //TODO should escape hpsspath..
     simplecmd('mkdir \"'+hpsspath+'\"', opts, function(err, lines) {
         cb(err, lines);
     });
