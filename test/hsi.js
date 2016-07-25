@@ -105,6 +105,12 @@ describe("HSI Tests", function() {
                 done();
             });
         });
+        it("should create dir -p", function(done) {
+            hsi.mkdir('_test/testp/somewhere', {p: true}, function(err, files){
+                expect(err).to.be.a('null');
+                done();
+            });
+        });
     });
 
     describe("#rmdir", function() {

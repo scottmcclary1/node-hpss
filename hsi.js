@@ -270,7 +270,7 @@ exports.mkdir = function(hpsspath, opts, cb) {
         opts = {};
     }
     //TODO should escape hpsspath..
-    simplecmd('mkdir \"'+hpsspath+'\"', opts, function(err, lines) {
+    simplecmd('mkdir '+(opts.p?'-p ':'')+'\"'+hpsspath+'\"', opts, function(err, lines) {
         cb(err, lines);
     });
 }
