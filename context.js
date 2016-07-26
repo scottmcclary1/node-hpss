@@ -42,7 +42,12 @@ context.prototype.help = function(cb) {
         cb(err, out);
     });
 }
-context.prototype.version = function(cb) {
+context.prototype.version = function(opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
     app.hsi.version(function(err, out) {
@@ -50,7 +55,12 @@ context.prototype.version = function(cb) {
         cb(err, out);
     });
 }
-context.prototype.rmdir = function(path, cb) {
+context.prototype.rmdir = function(path, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
     app.hsi.rmdir(path, function(err, out) {
@@ -58,7 +68,12 @@ context.prototype.rmdir = function(path, cb) {
         cb(err, out);
     });
 }
-context.prototype.rm = function(path, cb) {
+context.prototype.rm = function(path, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
     app.hsi.rm(path, function(err, out) {
@@ -66,7 +81,12 @@ context.prototype.rm = function(path, cb) {
         cb(err, out);
     });
 }
-context.prototype.touch = function(path, cb) {
+context.prototype.touch = function(path, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
     app.hsi.touch(path, function(err, out) {
@@ -74,7 +94,12 @@ context.prototype.touch = function(path, cb) {
         cb(err, out);
     });
 }
-context.prototype.mkdir = function(path, cb) {
+context.prototype.mkdir = function(path, opts, cb) {
+    //make opts optional
+    if(typeof(opts) === 'function' && cb == undefined) {
+        cb = opts;
+        opts = {};
+    }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
     app.hsi.mkdir(path, function(err, out) {
@@ -82,6 +107,7 @@ context.prototype.mkdir = function(path, cb) {
         cb(err, out);
     });
 }
+//TODO add opts
 context.prototype.get = function(hpsspath, localdest, cb, progress_cb) {
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
@@ -90,6 +116,7 @@ context.prototype.get = function(hpsspath, localdest, cb, progress_cb) {
         cb(err, out);
     }, progress_cb);
 }
+//TODO add opts
 context.prototype.put = function(localpath, hpsspath, cb, progress_cb) {
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
