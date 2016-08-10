@@ -1,6 +1,6 @@
 {
   "name": "hpss",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "hpss interface for nodejs",
   "main": "app.js",
   "scripts": {
