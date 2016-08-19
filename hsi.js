@@ -289,14 +289,14 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
         var file = files[0];
         var start = Date.now();
         var total_size = parseInt(file.size);
-        var progress_complete = false;
+        //var progress_complete = false;
 
         function progress() {
             try {
                 var stats = fs.statSync(localdest+"/"+file.entry);
                 var per = stats.size / total_size;
                 progress_cb({/*get: hpsspath,*/ progress: per, total_size: total_size, transferred_size: stats.size, elapsed_time: Date.now() - start});
-                if(per == 1) progress_complete = true;
+                //if(per == 1) progress_complete = true;
             } catch (e) {
                 progress_cb({progress: 0, total_size: total_size, transferred_size: 0, elapsed_time: Date.now() - start});
             }
@@ -318,7 +318,7 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
                 //get  'node-v0.10.29-linux-x64.tar.gz' : '/hpss/h/a/hayashis/node-v0.10.29-linux-x64.tar.gz' (2014/07/16 14:56:29 5362980 bytes, 25094.1 KBS )
                 
                 //we haven't sent progress: 1.0 yet.. let's make another call
-                if(progress_cb && !progress_complete) progress();
+                //if(progress_cb && !progress_complete) progress();
                 cb(null, lines);
             }
         });
@@ -334,7 +334,7 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
     }
 
     var start = Date.now();
-    var progress_complete = false;
+    //var progress_complete = false;
 
     function progress() {
         exports.ls(hpsspath, opts, function(err, files) {
@@ -345,7 +345,7 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
                 var file = files[0];
                 var per = file.size / src.size;
                 progress_cb({/*put: localpath,*/ progress: per, total_size: src.size, transferred_size: file.size, elapsed_time: Date.now() - start});
-                if(per == 1) progress_complete = true;
+                //if(per == 1) progress_complete = true;
             }
         });
     }
@@ -361,7 +361,7 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
                 cb(err, lines);
             } else {
                 //send 1 more progress report before calling it done
-                if(progress_cb && !progress_complete) progress_cb({progress: 1, total_size: src.size, transferred_size: src.size, elapsed_time: Date.now() - start});
+                //if(progress_cb && !progress_complete) progress_cb({progress: 1, total_size: src.size, transferred_size: src.size, elapsed_time: Date.now() - start});
                 cb(null, lines);
             }
         });
