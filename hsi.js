@@ -289,9 +289,13 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
         var file = files[0];
         var start = Date.now();
         var total_size = parseInt(file.size);
+        var p = null;
         //var progress_complete = false;
 
         function progress() {
+            //if progress is canceled, don't bother (in case this gets wrapped in async function like pub)
+            if(!p) return;
+
             try {
                 var stats = fs.statSync(localdest+"/"+file.entry);
                 var per = stats.size / total_size;
@@ -301,7 +305,6 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
                 progress_cb({progress: 0, total_size: total_size, transferred_size: 0, elapsed_time: Date.now() - start});
             }
         }
-        var p = null;
         if(progress_cb) p = setInterval(progress, 1000);
 
         //if localdest is missing, spawn will generate error (TODO - just got get command?)
@@ -309,6 +312,7 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
         //TODO should I double-quote escape hpsspath?
         simplecmd('get \"'+hpsspath+'\"', opts, function(err, lines) {
             clearInterval(p);
+            p = null;
             if(err) {
                 //console.dir(err);
                 cb(err, lines);
@@ -334,17 +338,21 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
     }
 
     var start = Date.now();
+    var p = null;
     //var progress_complete = false;
 
     function progress() {
         exports.ls(hpsspath, opts, function(err, files) {
+            //if progress is canceled, don't bother
+            if(!p) return;
+
             if(err) {
                 //file may not exist yet on remote... 
                 progress_cb({progress: 0, total_size: src.size, transferred_size: 0, elapsed_time: Date.now() - start});
             } else {
                 var file = files[0];
                 var per = file.size / src.size;
-                progress_cb({/*put: localpath,*/ progress: per, total_size: src.size, transferred_size: file.size, elapsed_time: Date.now() - start});
+                progress_cb({progress: per, total_size: src.size, transferred_size: file.size, elapsed_time: Date.now() - start});
                 //if(per == 1) progress_complete = true;
             }
         });
@@ -352,11 +360,11 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
 
     try {
         var src = fs.statSync(localpath); //throws if localsrc doesn't exist
-        var p = null;
         if(progress_cb) p = setInterval(progress, 3000); //calling hsi ls every 3 seconds should be enough?
         //TODO shouldn't I double-quote escape localpath/hpsspath?
         simplecmd('put \"'+localpath+'\" : \"'+hpsspath+'\"', opts, function(err, lines) {
             clearInterval(p);
+            p = null;
             if(err) {
                 cb(err, lines);
             } else {
