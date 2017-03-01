@@ -36,54 +36,59 @@ function simplecmd(cmd, opts, cb, linecb) {
     var header = [];
     var skipped = 0;
     var reached_limit = false;
-    var p = spawn('hsi', [cmd], opts);
     var err = null;
-    //setup a line parser
-    p.stderr.pipe(split()).pipe(through(function(buf, _, next){
-        var line = buf.toString();
-        if(header.length < 2) {
-            //what should I do with header info? it looks like
-            //Username: hayashis  UID: 740536  Acct: 740536(740536) Copies: 1 Firewall: off [hsi.5.0.1.p1 Wed Dec 31 14:56:17 EST 2014]
-            //A: firewall mode set ON, I/O mode set to extended (parallel=off), autoscheduling currently set to OFF
-            header.push(line);
-        } else {
-            //skip first few lines specified by opts.offset
-            if(opts.offset && opts.offset > skipped) {
-                skipped++;
+    try {
+        var p = spawn('hsi', [cmd], opts);
+        p.on('error', function(_err) {
+            //like cwd set to a wrong path or such..
+            //console.log("hsi command failed:"+cmd); 
+            //console.dir(err);
+            //console.dir(opts);
+            //'close' will still fire so defer for that event and pass err through it
+            err = _err;
+        });
+        p.on('close', function(code, signal) {
+            //console.log("hsi finished");
+            //console.log(code);
+            //console.log(signal);
+            if(!reached_limit) {
+                if(err) return cb(err, lines);
+                if(code != 0) return cb({code: code, signal, signal, err: cmd+" failed with code:"+code+"\n"+lines.join("\n")});
+                cb(null, lines);
+            }
+        });
+        //setup a line parser
+        p.stderr.pipe(split()).pipe(through(function(buf, _, next){
+            var line = buf.toString();
+            if(header.length < 2) {
+                //what should I do with header info? it looks like
+                //Username: hayashis  UID: 740536  Acct: 740536(740536) Copies: 1 Firewall: off [hsi.5.0.1.p1 Wed Dec 31 14:56:17 EST 2014]
+                //A: firewall mode set ON, I/O mode set to extended (parallel=off), autoscheduling currently set to OFF
+                header.push(line);
             } else {
-                //console.log(line);
-                lines.push(line);
-                if(linecb) linecb(line);
+                //skip first few lines specified by opts.offset
+                if(opts.offset && opts.offset > skipped) {
+                    skipped++;
+                } else {
+                    //console.log(line);
+                    lines.push(line);
+                    if(linecb) linecb(line);
 
-                //terminate if it reaches the number of lines requested by limit
-                if(opts.limit && opts.limit == lines.length) {       
-                    p.kill('SIGTERM');
-                    reached_limit = true;
-                    cb(null, lines, reached_limit); 
+                    //terminate if it reaches the number of lines requested by limit
+                    if(opts.limit && opts.limit == lines.length) {       
+                        p.kill('SIGTERM');
+                        reached_limit = true;
+                        cb(null, lines, reached_limit); 
+                    }
                 }
             }
-        }
-        next();
-    }));
-    p.on('close', function(code, signal) {
-        //console.log("hsi finished");
-        //console.log(code);
-        //console.log(signal);
-        if(!reached_limit) {
-            if(err) return cb(err, lines);
-            //if(code != 0) return cb({code: code, signal: signal, err: err}, lines);
-            if(code != 0) return cb(cmd+" failed with code:"+code+"\n"+lines.join("\n"));
-            cb(null, lines);
-        }
-    });
-    p.on('error', function(_err) {
-        //like cwd set to a wrong path or such..
-        console.log("hsi command failed:"+cmd); 
-        console.dir(err);
-        console.dir(opts);
-        //'close' will still fire so defer for that event and pass err through it
-        err = _err;
-    });
+            next();
+        }));
+    } catch (err) {
+        //p.on('error') should catch error, but sometimes it doesn't catch all exception...
+        console.error("node-hpss.simplecmd caught exception", err.code);
+        cb(err);
+    }
 }
 
 function parse_mode(p) {
@@ -152,13 +157,6 @@ function parse_lsout(out) {
     }
 }
 
-/*
-function isFunction(functionToCheck) {
-    var getType = {};
-    return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
-}
-*/
-
 exports.ls = function(path, opts, cb) {
     //make opts optional
     if(typeof(opts) === 'function' && cb == undefined) {
@@ -173,10 +171,8 @@ exports.ls = function(path, opts, cb) {
             cb(err, lines);
         } else {
             var files = [];
-            //lines = lines.splice(2);
             lines.forEach(function(line) {
                 if(line == '') return; //last line?
-                //files.push(line.split(" ")); 
                 files.push(parse_lsout(line));
             });
             if(reached_limit) {
@@ -194,7 +190,6 @@ exports.help = function(opts, cb) {
         opts = {};
     }
     simplecmd('help', opts, function(err, lines) {
-        //var all_lines = lines.join('\n');
         cb(err, lines);
     });
 }
@@ -290,7 +285,6 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
         var start = Date.now();
         var total_size = parseInt(file.size);
         var p = null;
-        //var progress_complete = false;
 
         function progress() {
             //if progress is canceled, don't bother (in case this gets wrapped in async function like pub)
@@ -300,7 +294,6 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
                 var stats = fs.statSync(localdest+"/"+file.entry);
                 var per = stats.size / total_size;
                 progress_cb({/*get: hpsspath,*/ progress: per, total_size: total_size, transferred_size: stats.size, elapsed_time: Date.now() - start});
-                //if(per == 1) progress_complete = true;
             } catch (e) {
                 progress_cb({progress: 0, total_size: total_size, transferred_size: 0, elapsed_time: Date.now() - start});
             }

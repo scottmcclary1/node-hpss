@@ -13,7 +13,8 @@ describe("#context", function() {
     it("ls", function(done) {
         var h = new hpss.context({
             username: "hayashis",   
-            keytab: fs.readFileSync("/home/hayashis/.ssh/soichi-hsi.keytab"),
+            //keytab: fs.readFileSync("/home/hayashis/.ssh/soichi-hsi.keytab"),
+            keytab: fs.readFileSync("/home/hayashis/.ssh/hayashis.keytab"),
         });
         h.ls('isos', function(err, files){
             expect(err).to.be.a('null');

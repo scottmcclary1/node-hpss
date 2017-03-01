@@ -3,6 +3,7 @@ var hpss = require("../app.js");
 var hsi = hpss.hsi;
 
 describe("HSI Tests", function() {
+    this.timeout(10000); //some time, some command takes longer
 
     describe("#basic", function() {
         it("version", function(done) {
@@ -23,6 +24,8 @@ describe("HSI Tests", function() {
     describe("#ls", function() {
         it("ls(missing)", function(done) {
             hsi.ls('_missing_', function(err, out){
+                //console.dir(err);
+                //console.dir(out);
                 expect(err.code).to.equal(64);
                 done();
             });
@@ -31,7 +34,7 @@ describe("HSI Tests", function() {
             hsi.ls('isos', function(err, files){
                 expect(err).to.be.a('null');
                 expect(files).to.have.length(5);
-                console.dir(files);
+                //console.dir(files);
                 done();
             });
         });
@@ -41,7 +44,7 @@ describe("HSI Tests", function() {
         it("touch a directory /hpss (should be no-op)", function(done) {
             hsi.touch('/hpss', function(err, out) {
                 expect(err).to.be.a('null');
-                console.dir(out);
+                //console.dir(out);
                 done();
             });
         });
@@ -132,8 +135,9 @@ describe("HSI Tests", function() {
                 done();
             });
         });
-        it("should remove empty dir", function(done) {
-            hsi.rmdir('_test', function(err, files){
+        it("should remove empty dir successfully", function(done) {
+            hsi.rmdir('_test/testp/somewhere', function(err, files){
+                console.dir(err);
                 expect(err).to.be.a('null');
                 done();
             });
@@ -157,7 +161,7 @@ describe("HSI Tests", function() {
         it("put-small", function(done) {
             hsi.put('/usr/local/tmp/node-v0.10.29-linux-x64.tar.gz', 'test/node-v0.10.29-linux-x64.tar.gz', function(err, lines) {
                 expect(err).to.be.a('null');
-                console.dir(lines);
+                //console.dir(lines);
                 done();
             });
         });
@@ -165,7 +169,7 @@ describe("HSI Tests", function() {
             this.timeout(30*1000); //30 seconds should be enough
             hsi.put('/usr/local/tmp/git.tar.gz', 'test/git.tar.gz', function(err, lines) {
                 expect(err).to.be.a('null');
-                console.dir(lines);
+                //console.dir(lines);
                 done();
             }, function(progress) {
                 console.dir(progress);
@@ -176,7 +180,7 @@ describe("HSI Tests", function() {
     describe("#get", function() {
         it("get-wronglocal", function(done) {
             hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/__noexists__', function(err) {
-                console.dir(err);
+                //console.dir(err);
                 expect(err.code).to.equal('ENOENT');  //spawn chould generate error event
                 done();
             });
@@ -198,7 +202,7 @@ describe("HSI Tests", function() {
             //hsi.get('isos/CentOS-7-x86_64-Everything-1503-01.iso', '/usr/local/tmp', function(err) {
             hsi.get('test/node-v0.10.29-linux-x64.tar.gz', '/usr/local/tmp', function(err, lines) {
                 expect(err).to.be.a('null');
-                console.dir(lines);
+                //console.dir(lines);
                 done();
             }, function(progress) {
                 console.dir(progress);
@@ -209,7 +213,7 @@ describe("HSI Tests", function() {
             this.timeout(30*1000); //30 seconds should be enough
             hsi.get('test/git.tar.gz', '/usr/local/tmp', function(err, lines) {
                 expect(err).to.be.a('null');
-                console.dir(lines);
+                //console.dir(lines);
                 done();
             }, function(progress) {
                 console.dir(progress);
