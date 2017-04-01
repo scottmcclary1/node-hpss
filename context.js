@@ -70,7 +70,7 @@ context.prototype.rmdir = function(path, opts, cb) {
     }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
-    app.hsi.rmdir(path, function(err, out) {
+    app.hsi.rmdir(path, opts, function(err, out) {
         app.hpss.env = prev_env; //restore
         cb(err, out);
     });
@@ -83,7 +83,7 @@ context.prototype.rm = function(path, opts, cb) {
     }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
-    app.hsi.rm(path, function(err, out) {
+    app.hsi.rm(path, opts, function(err, out) {
         app.hpss.env = prev_env; //restore
         cb(err, out);
     });
@@ -96,7 +96,7 @@ context.prototype.touch = function(path, opts, cb) {
     }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
-    app.hsi.touch(path, function(err, out) {
+    app.hsi.touch(path, opts, function(err, out) {
         app.hpss.env = prev_env; //restore
         cb(err, out);
     });
@@ -109,7 +109,7 @@ context.prototype.mkdir = function(path, opts, cb) {
     }
     var prev_env = app.hpss.env;
     app.hpss.env = this.env;
-    app.hsi.mkdir(path, function(err, out) {
+    app.hsi.mkdir(path, opts, function(err, out) {
         app.hpss.env = prev_env; //restore
         cb(err, out);
     });
