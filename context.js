@@ -13,13 +13,20 @@ var app = require('./app');
 //{username: hayashis, keytab: __binary__}
 function context(opt) {
     this.env = {};
-    if(opt && opt.username) this.env.HPSS_PRINCIPAL= opt.username;
+    if(opt && opt.username) this.env.HPSS_PRINCIPAL = opt.username;
     if(opt && opt.keytab) {
         this.keytab = tmp.fileSync();
         var len = fs.writeSync(this.keytab.fd, opt.keytab, 0, opt.keytab.length); //need to set length or writeSync won't write anything..
         this.env.HPSS_AUTH_METHOD = "keytab";
         this.env.HPSS_KEYTAB_PATH = this.keytab.name;
+        if(app.hpss.debug) console.log("storing keytab in", this.keytab.name);
     }
+    /*
+    if(app.hpss.debug) {
+        console.log("creating context");
+        console.dir(this.env);
+    }
+    */
 }
 context.prototype.ls = function(path, opts, cb) {
     //make opts optional
@@ -127,8 +134,10 @@ context.prototype.put = function(localpath, hpsspath, cb, progress_cb) {
 }
 
 context.prototype.clean = function() {
-    if(this.keytab) this.keytab.removeCallback();
+    if(this.keytab) {
+        if(app.hpss.debug) console.log("removing", this.keytab.name);
+        this.keytab.removeCallback();
+    }
 }
-
 
 module.exports = context;
