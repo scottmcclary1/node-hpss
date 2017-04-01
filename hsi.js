@@ -32,6 +32,11 @@ function simplecmd(cmd, opts, cb, linecb) {
         cmd = 'firewall -off; '+cmd;
     }
 
+    if(hpss.debug) {
+        console.log(cmd);
+        //for(var k in opts.env) { if(k.indexOf("HPSS_") === 0) console.log(k, opts.env[k]); }
+    }
+
     var lines = [];
     var header = [];
     var skipped = 0;
@@ -157,14 +162,18 @@ function parse_lsout(out) {
     }
 }
 
+function escape_double(str) {
+    //in hsi, I need to escape " to \\"
+    return str.replace(/"/g,'\\\\"');
+}
+
 exports.ls = function(path, opts, cb) {
     //make opts optional
     if(typeof(opts) === 'function' && cb == undefined) {
         cb = opts;
         opts = {};
     }
-    //TODO should I double-quote escape path?
-    simplecmd('ls -UN \"'+path+'\"', opts, function(err, lines, reached_limit) {
+    simplecmd('ls -UN \"'+escape_double(path)+'\"', opts, function(err, lines, reached_limit) {
         if(err) {
             //hsi/ls return codes (??)
             //64: missing?
@@ -189,9 +198,7 @@ exports.help = function(opts, cb) {
         cb = opts;
         opts = {};
     }
-    simplecmd('help', opts, function(err, lines) {
-        cb(err, lines);
-    });
+    simplecmd('help', opts, cb);
 }
 
 exports.version = function(opts, cb) {
@@ -224,10 +231,7 @@ exports.rmdir = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
-    //TODO should escape hpsspath..
-    simplecmd('rmdir \"'+hpsspath+'\"', opts, function(err, lines) {
-        cb(err, lines);
-    });
+    simplecmd('rmdir \"'+escape_double(hpsspath)+'\"', opts, cb);
 }
 
 exports.rm = function(hpsspath, opts, cb) {
@@ -236,12 +240,7 @@ exports.rm = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
-    //TODO should escape hpsspath..
-    simplecmd('rm \"'+hpsspath+'\"', opts, function(err, lines) {
-        //console.dir(err);
-        //console.dir(lines);
-        cb(err, lines);
-    });
+    simplecmd('rm \"'+escape_double(hpsspath)+'\"', opts, cb);
 }
 
 exports.touch = function(hpsspath, opts, cb) {
@@ -250,12 +249,7 @@ exports.touch = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
-    //TODO should escape hpsspath..
-    simplecmd('touch \"'+hpsspath+'\"', opts, function(err, lines) {
-        //console.dir(err);
-        //console.dir(lines);
-        cb(err, lines);
-    });
+    simplecmd('touch \"'+escape_double(hpsspath)+'\"', opts, cb);
 }
 
 exports.mkdir = function(hpsspath, opts, cb) {
@@ -264,10 +258,7 @@ exports.mkdir = function(hpsspath, opts, cb) {
         cb = opts;
         opts = {};
     }
-    //TODO should escape hpsspath..
-    simplecmd('mkdir '+(opts.p?'-p ':'')+'\"'+hpsspath+'\"', opts, function(err, lines) {
-        cb(err, lines);
-    });
+    simplecmd('mkdir '+(opts.p?'-p ':'')+'\"'+escape_double(hpsspath)+'\"', opts, cb);
 }
 
 exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
@@ -303,7 +294,7 @@ exports.get = function(hpsspath, localdest, opts, cb, progress_cb) {
         //if localdest is missing, spawn will generate error (TODO - just got get command?)
         if(opts.cwd == undefined) opts.cwd = localdest;
         //TODO should I double-quote escape hpsspath?
-        simplecmd('get \"'+hpsspath+'\"', opts, function(err, lines) {
+        simplecmd('get \"'+escape_double(hpsspath)+'\"', opts, function(err, lines) {
             clearInterval(p);
             p = null;
             if(err) {
@@ -354,8 +345,7 @@ exports.put = function(localpath, hpsspath, opts, cb, progress_cb) {
     try {
         var src = fs.statSync(localpath); //throws if localsrc doesn't exist
         if(progress_cb) p = setInterval(progress, 3000); //calling hsi ls every 3 seconds should be enough?
-        //TODO shouldn't I double-quote escape localpath/hpsspath?
-        simplecmd('put \"'+localpath+'\" : \"'+hpsspath+'\"', opts, function(err, lines) {
+        simplecmd('put \"'+escape_double(localpath)+'\" : \"'+escape_double(hpsspath)+'\"', opts, function(err, lines) {
             clearInterval(p);
             p = null;
             if(err) {

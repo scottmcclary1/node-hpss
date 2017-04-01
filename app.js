@@ -4,8 +4,10 @@
 //hpss globals
 var hpss = {
     behind_firewall: false,
-    env: null
-};
+    env: null,
+    debug: false,
+}
+
 exports.init = function(conf) {
     //just copy all conf in..
     for(var key in conf) {
